@@ -1,41 +1,347 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Used, But Hidden</title>
-    <style>
-  body {
-    font-family: sans-serif;
-    max-width: 600px;
-    margin: 60px auto;
-    padding: 0 20px;
-    color: #222;
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Used, But Hidden — AI at Work</title>
+<meta name="description" content="An interactive look at how many employees use AI at work, and how many hide that they do." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ECEDEA;
+    --panel: #F5F5F2;
+    --ink: #181B1F;
+    --muted: #5B6168;
+    --used: #3B6E8F;
+    --hidden: #B6592E;
+    --unused-border: #BFC3C2;
+    --rule: #D4D6D1;
+    --max-w: 760px;
   }
- #hiddenStat {
-  display: none;
-  color: #b6592e;
-  font-weight: 600;
-}
 
-h1 {
-  font-size: 4rem;
-  margin-bottom: 0;
-  color: #2b5d54;
-}
+  * { box-sizing: border-box; }
 
-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    padding: 6vh 1.25rem 8vh;
+    display: flex;
+    justify-content: center;
+  }
+
+  main {
+    max-width: var(--max-w);
+    width: 100%;
+  }
+
+  .eyebrow {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(2rem, 5.5vw, 2.75rem);
+    line-height: 1.18;
+    margin: 0 0 0.9rem;
+    letter-spacing: -0.01em;
+    max-width: 14ch;
+  }
+
+  .dek {
+    color: var(--muted);
+    max-width: 56ch;
+    margin: 0 0 2.5rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 2rem 1.75rem;
+    margin-bottom: 2.25rem;
+  }
+
+  .stat-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-num {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 600;
+    color: var(--used);
+    transition: color 0.3s ease;
+  }
+
+  .stat-num.is-revealed { color: var(--hidden); }
+
+  .stat-desc {
+    color: var(--ink);
+    font-size: 1.05rem;
+  }
+
+  .grid-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .pictogram {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 7px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .dot {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1.5px solid var(--unused-border);
+    background: transparent;
+    transition: background 0.35s ease, border-color 0.35s ease, transform 0.2s ease;
+    position: relative;
+  }
+
+  .dot.user {
+    background: var(--used);
+    border-color: var(--used);
+  }
+
+  .dot.user.hider.revealed {
+    background: var(--hidden);
+    border-color: var(--hidden);
+  }
+
+  .dot:hover {
+    transform: scale(1.18);
+  }
+
+  .dot[title] { cursor: help; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+    justify-content: center;
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .swatch.none { border: 1.5px solid var(--unused-border); }
+  .swatch.used { background: var(--used); }
+  .swatch.hider { background: var(--hidden); }
+
+  button.reveal {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--ink);
+    border: none;
+    border-radius: 999px;
+    padding: 0.7rem 1.6rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.2s ease;
+  }
+
+  button.reveal:hover { background: #333a42; }
+
+  button.reveal:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--used);
+    outline-offset: 3px;
+  }
+
+  .context {
+    margin-top: 2.25rem;
+  }
+
+  .context h2 {
+    font-family: 'Lora', Georgia, serif;
+    font-weight: 500;
+    font-size: 1.2rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .side-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0 2.25rem;
+  }
+
+  .side-stat {
+    border-left: 2px solid var(--rule);
+    padding-left: 0.9rem;
+  }
+
+  .side-stat .num {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.6rem;
+    display: block;
+  }
+
+  .side-stat .label {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .sources {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .sources h2 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    text-transform: none;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+  }
+
+  .sources a {
+    color: var(--used);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot, .stat-num, button.reveal { transition: none; }
+  }
 </style>
-  </head>
-  <body>
-    <h1>58%</h1>
-    <p>of employees worldwide say they intentionally use AI at work.</p>
-    <p id="hiddenStat">57% of those employees say they hide their AI use and present the work as their own.</p>
-    <button onclick="document.getElementById('hiddenStat').style.display = 'block';">Reveal who hides it</button>
-    <hr>
-<p><strong>Source:</strong> Nicole Gillespie &amp; Steve Lockey (University of Melbourne), in collaboration with KPMG International, <em>Trust, Attitudes and Use of Artificial Intelligence: A Global Study 2025</em> — a survey of over 48,000 people across 47 countries. <a href="https://mbs.edu/news/Global-study-reveals-trust-of-AI-remains-a-critical-challenge" target="_blank">Read the summary</a>.</p>
-  </body>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Technology &amp; the workplace</p>
+    <h1>Used, but hidden</h1>
+    <p class="dek">AI has moved into daily work faster than most workplaces have figured out what to do about it. The more interesting number isn't how many people use it &mdash; it's how many don't say so.</p>
+
+    <div class="panel">
+      <div class="stat-line">
+        <span class="stat-num" id="statNum">58%</span>
+        <span class="stat-desc" id="statDesc">of employees worldwide say they intentionally use AI at work.</span>
+      </div>
+
+      <div class="grid-wrap">
+        <div class="pictogram" id="pictogram" role="img" aria-label="Grid of 100 dots representing 100 employees. 58 use AI at work; of those, 33 conceal that use."></div>
+        <div class="legend">
+          <span><span class="swatch none"></span>Doesn't use AI</span>
+          <span><span class="swatch used"></span>Uses AI openly</span>
+          <span><span class="swatch hider"></span>Uses AI, hides it</span>
+        </div>
+        <button class="reveal" id="revealBtn" type="button" aria-pressed="false">Reveal who hides it</button>
+      </div>
+    </div>
+
+    <div class="context">
+      <h2>Why the concealment?</h2>
+      <p>The same global study points to a workplace that hasn't caught up to how its people are already working:</p>
+      <div class="side-stats">
+        <div class="side-stat">
+          <span class="num">31%</span>
+          <span class="label">use AI weekly or daily &mdash; this isn't occasional use</span>
+        </div>
+        <div class="side-stat">
+          <span class="num">47%</span>
+          <span class="label">have received any formal AI training</span>
+        </div>
+        <div class="side-stat">
+          <span class="num">40%</span>
+          <span class="label">say their workplace has an actual AI policy</span>
+        </div>
+      </div>
+      <p>Most employees using AI at work are doing it without training or a policy to follow &mdash; and about half say they're worried about falling behind if they don't use it. Concealment, in that light, looks less like dishonesty and more like people managing a risk nobody has given them rules for.</p>
+    </div>
+
+    <div class="sources">
+      <h2>Sources</h2>
+      <p>Nicole Gillespie &amp; Steve Lockey (Melbourne Business School, University of Melbourne), in collaboration with KPMG International, <em>Trust, Attitudes and Use of Artificial Intelligence: A Global Study 2025</em> &mdash; survey of over 48,000 people across 47 countries, Nov 2024&ndash;Jan 2025. <a href="https://mbs.edu/news/Global-study-reveals-trust-of-AI-remains-a-critical-challenge" target="_blank" rel="noopener">Read the summary at mbs.edu &rarr;</a></p>
+    </div>
+  </main>
+
+  <script>
+    const TOTAL = 100;
+    const USERS = 58;
+    const HIDERS = 33; // 57% of 58, rounded
+
+    const pictogram = document.getElementById('pictogram');
+    const revealBtn = document.getElementById('revealBtn');
+    const statNum = document.getElementById('statNum');
+    const statDesc = document.getElementById('statDesc');
+
+    for (let i = 0; i < TOTAL; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      if (i < USERS) {
+        dot.classList.add('user');
+        dot.title = i < HIDERS ? 'Uses AI at work' : 'Uses AI at work, openly';
+      } else {
+        dot.title = "Doesn't use AI at work";
+      }
+      if (i < HIDERS) dot.classList.add('hider');
+      pictogram.appendChild(dot);
+    }
+
+    let revealed = false;
+    revealBtn.addEventListener('click', () => {
+      revealed = !revealed;
+      revealBtn.setAttribute('aria-pressed', String(revealed));
+      revealBtn.textContent = revealed ? 'Hide that again' : 'Reveal who hides it';
+      statNum.classList.toggle('is-revealed', revealed);
+
+      document.querySelectorAll('.dot.hider').forEach(d => {
+        d.classList.toggle('revealed', revealed);
+        d.title = revealed
+          ? 'Uses AI at work \u2014 and hides it, presenting it as their own'
+          : 'Uses AI at work';
+      });
+
+      if (revealed) {
+        statNum.textContent = '57%';
+        statDesc.textContent = 'of those employees say they hide their AI use and present the work as their own.';
+      } else {
+        statNum.textContent = '58%';
+        statDesc.textContent = 'of employees worldwide say they intentionally use AI at work.';
+      }
+    });
+  </script>
+</body>
 </html>
